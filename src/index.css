@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply font-sans text-ink bg-white;
+  }
+
+  /* Ensure interactive elements have visible focus rings */
+  :focus-visible {
+    @apply outline-none ring-2 ring-brand-purple/40 ring-offset-1;
+  }
+}
+
+@layer utilities {
+  /* Safe area padding for iOS notch/home indicator */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
