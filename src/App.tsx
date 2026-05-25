@@ -311,6 +311,13 @@ export function App() {
           >
             Report an issue on GitHub
           </a>
+          {' '}or{' '}
+          <a
+            href="mailto:89349331+jaey8den@users.noreply.github.com"
+            className="underline"
+          >
+            email the maintainer
+          </a>
           {' '}— include a screenshot and any bus stop or train station names
           that appear incorrect.
         </p>

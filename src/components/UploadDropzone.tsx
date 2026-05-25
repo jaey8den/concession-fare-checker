@@ -196,6 +196,13 @@ export function UploadDropzone({ onFile, isLoading, error }: UploadDropzoneProps
             >
               Report an issue
             </a>
+            {' '}or{' '}
+            <a
+              href="mailto:89349331+jaey8den@users.noreply.github.com"
+              className="underline"
+            >
+              email the maintainer
+            </a>
             {' '}— please include a screenshot and any bus stop or train station
             names that look wrong so they can be excluded or corrected.
           </p>
