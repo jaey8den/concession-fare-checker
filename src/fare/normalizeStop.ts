@@ -32,6 +32,9 @@ const EXPANSIONS: Array<[RegExp, string]> = [
   [/\bRd\b/gi, 'Road'],
 ]
 
+// Fare amount appended to stop names on non-concession (regular fare) trips: "$1.23", "$ 2.39"
+const TRAILING_FARE = /\s*\$\s*\d+\.\d{2}$/
+
 // Remove boarding/alighting labels appended by SimplyGo PDF:
 //   "Ang Mo Kio Int Alighting", "Ang Mo Kio Boarding 2"
 const BOARDING_ALIGHTING_SUFFIX = /\s+(Alighting|Boarding\s*\d*)$/i
@@ -62,6 +65,9 @@ export function normalizeStop(
   const { stripExits = true } = options
   if (!raw || typeof raw !== 'string') return ''
   let result = raw.trim()
+
+  // Strip trailing fare amount appended on non-concession trips: "Bishan $1.23" → "Bishan"
+  result = result.replace(TRAILING_FARE, '')
 
   // Apply all abbreviation expansions
   for (const [pattern, replacement] of EXPANSIONS) {

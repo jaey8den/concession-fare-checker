@@ -351,7 +351,17 @@ export async function parseStatement(pdfBytes: ArrayBuffer): Promise<Statement> 
       const titleText = titleItems.map(r => r.text.trim()).filter(Boolean).join(' ')
       const sepIdx = titleText.indexOf(' - ')
       const origin = sepIdx !== -1 ? titleText.slice(0, sepIdx).trim() : titleText
-      const destination = sepIdx !== -1 ? titleText.slice(sepIdx + 3).trim() : ''
+      let destination = sepIdx !== -1 ? titleText.slice(sepIdx + 3).trim() : ''
+
+      // Non-concession trips append the fare to the destination text ("Bishan $1.23").
+      // Extract it so charged is non-zero and the journey is not treated as pass usage.
+      if (charged === 0) {
+        const embeddedFare = destination.match(/\s*\$\s*(\d+\.\d{2})$/)
+        if (embeddedFare) {
+          charged = parseFloat(embeddedFare[1]!)
+          destination = destination.slice(0, destination.length - embeddedFare[0].length).trim()
+        }
+      }
 
       i++
 

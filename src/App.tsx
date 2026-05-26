@@ -7,7 +7,7 @@
  * happens locally using pdfjs-dist in the browser.
  */
 
-import { useState, useCallback, useEffect, useReducer } from 'react'
+import { useState, useCallback, useEffect, useReducer, useRef } from 'react'
 import { parseStatement } from './parser/parseStatement'
 import { computeFare } from './fare/computeFare'
 import { UploadDropzone } from './components/UploadDropzone'
@@ -178,6 +178,11 @@ function ResultsScreen({ statement, fareResults, cardType, onCardTypeChange }: R
       {/* Disclaimer (condensed at top of results) */}
       <Disclaimer condensed />
 
+      {/* Drag-to-replace hint */}
+      <p className="text-xs text-ink-muted text-center -mt-2 rounded-xl border border-dashed border-brand-purple/40 py-2 px-4">
+        Drag a new PDF anywhere on this page to re-analyze
+      </p>
+
       {/* Card type */}
       <CardTypeSelector value={cardType} onChange={onCardTypeChange} />
 
@@ -205,6 +210,23 @@ function ResultsScreen({ statement, fareResults, cardType, onCardTypeChange }: R
         </div>
       </section>
     </main>
+  )
+}
+
+// ─── Page-level drop overlay (shown when dragging a file over results) ────────
+
+function PageDropOverlay() {
+  return (
+    <div className="fixed inset-0 z-50 bg-brand-purple/10 flex items-center justify-center pointer-events-none">
+      <div className="rounded-2xl border-2 border-dashed border-brand-purple bg-white/95 shadow-xl px-10 py-8 flex flex-col items-center gap-3">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="text-brand-purple/60">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="17 8 12 3 7 8" />
+          <line x1="12" y1="3" x2="12" y2="15" />
+        </svg>
+        <p className="text-base font-semibold text-ink-DEFAULT">Drop to analyze new PDF</p>
+      </div>
+    </div>
   )
 }
 
@@ -271,6 +293,51 @@ export function App() {
     dispatch({ type: 'RESET' })
   }, [])
 
+  const [isPageDragOver, setIsPageDragOver] = useState(false)
+  const dragCounterRef = useRef(0)
+
+  useEffect(() => {
+    if (state.phase !== 'results') return
+
+    const onEnter = (e: DragEvent) => {
+      if (e.dataTransfer?.types.includes('Files')) {
+        dragCounterRef.current++
+        setIsPageDragOver(true)
+      }
+    }
+    const onLeave = () => {
+      dragCounterRef.current--
+      if (dragCounterRef.current <= 0) {
+        dragCounterRef.current = 0
+        setIsPageDragOver(false)
+      }
+    }
+    const onOver = (e: DragEvent) => e.preventDefault()
+    const onDrop = (e: DragEvent) => {
+      e.preventDefault()
+      dragCounterRef.current = 0
+      setIsPageDragOver(false)
+      const file = e.dataTransfer?.files[0]
+      if (file?.type === 'application/pdf') {
+        handleFile(file)
+      }
+    }
+
+    document.addEventListener('dragenter', onEnter)
+    document.addEventListener('dragleave', onLeave)
+    document.addEventListener('dragover', onOver)
+    document.addEventListener('drop', onDrop)
+
+    return () => {
+      dragCounterRef.current = 0
+      setIsPageDragOver(false)
+      document.removeEventListener('dragenter', onEnter)
+      document.removeEventListener('dragleave', onLeave)
+      document.removeEventListener('dragover', onOver)
+      document.removeEventListener('drop', onDrop)
+    }
+  }, [state.phase, handleFile])
+
   return (
     <div className="min-h-[100dvh] flex flex-col bg-white font-sans text-ink-DEFAULT">
       <Header
@@ -298,6 +365,8 @@ export function App() {
           />
         )}
       </div>
+
+      {isPageDragOver && <PageDropOverlay />}
 
       <footer>
         <Disclaimer />

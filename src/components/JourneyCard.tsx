@@ -86,9 +86,19 @@ export function JourneyCard({ journey, fareResult, chargedCents }: JourneyCardPr
             Pass
           </span>
         ) : (
-          <span className="text-sm font-semibold text-ink-DEFAULT">
-            {formatFare(chargedCents)}
-          </span>
+          <>
+            <span className="text-xs font-medium text-yellow-700 bg-yellow-100 rounded-full px-2 py-0.5">
+              Fare
+            </span>
+            <span className="text-sm font-semibold text-ink-DEFAULT">
+              {formatFare(chargedCents)}
+            </span>
+            {adultFare !== null && adultFare !== chargedCents && (
+              <span className="text-xs text-ink-muted">
+                Est. {formatFare(adultFare)}
+              </span>
+            )}
+          </>
         )}
 
         {isUnpriced ? (
@@ -100,7 +110,7 @@ export function JourneyCard({ journey, fareResult, chargedCents }: JourneyCardPr
             <span>Unpriced</span>
           </span>
         ) : (
-          savingsCents !== null && savingsCents > 0 && (
+          isPassUsage && savingsCents !== null && savingsCents > 0 && (
             <span className="text-xs font-medium text-emerald-600 bg-emerald-50 rounded-full px-2 py-0.5">
               −{formatFare(savingsCents)}
             </span>
